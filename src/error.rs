@@ -8,6 +8,7 @@ pub struct Error {
 }
 
 impl Error {
+    #[cfg(test)]
     pub(crate) fn new(kind: Kind) -> Error {
         Error { kind }
     }

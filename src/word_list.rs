@@ -38,7 +38,7 @@ impl WordList {
 
             if !duplicate_checker.insert(word) {
                 return Err(format!(
-                    "Duplicate word detected: {} at line {}",
+                    "Duplicate word detected: {} at position {}",
                     word,
                     i + 1
                 ));
@@ -66,5 +66,40 @@ impl WordList {
 impl Default for WordList {
     fn default() -> Self {
         WordList::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn word_list_unit_test() {
+        let mut wl = WordList::new();
+        assert!(wl.is_empty());
+
+        wl.push("HELLO");
+        assert!(wl.len() == 1);
+        assert!(!wl.is_empty());
+        if let Err(e) = wl.is_valid() {
+            panic!("test failed. invalid at {e}");
+        }
+
+        wl.push("HELLO");
+        assert!(wl.len() == 2);
+        assert!(!wl.is_empty());
+        if let Ok(()) = wl.is_valid() {
+            panic!("duplicate not detected");
+        }
+
+        let mut wl2 = WordList::new();
+        assert!(wl2.is_empty());
+
+        wl2.push("hELLO");
+        assert!(wl2.len() == 1);
+        assert!(!wl2.is_empty());
+        if let Ok(()) = wl2.is_valid() {
+            panic!("lower case not detected");
+        }
     }
 }
