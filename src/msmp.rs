@@ -11,13 +11,15 @@
 use std::fmt;
 
 pub use error::{Error, Kind};
+pub use two_d_array::TwoDArray;
 pub use word_list::WordList;
 
 mod error;
+mod two_d_array;
 mod word_list;
 
 pub struct HashClosure {
-    pub cls: Box<dyn Fn(&str) -> i16>,
+    pub cls: Box<dyn Fn(&str) -> usize>,
 }
 
 impl fmt::Debug for HashClosure {
@@ -27,7 +29,7 @@ impl fmt::Debug for HashClosure {
 }
 
 impl HashClosure {
-    fn new(cls: impl Fn(&str) -> i16 + 'static) -> Self {
+    fn new(cls: impl Fn(&str) -> usize + 'static) -> Self {
         Self { cls: Box::new(cls) }
     }
 }
@@ -41,10 +43,21 @@ pub struct HashData {
 /// # Errors
 ///
 /// Will return `Err` if `word_list` fails to resolve to a hash function.
-pub fn generate_hash(_word_list: &WordList) -> Result<HashData, Error> {
-    //println!("{word_list:?}");
-    Ok(HashData {
-        as_string: String::from("test"),
-        as_closure: HashClosure::new(|a| a.len().try_into().unwrap()),
-    })
+pub fn generate_hash(word_list: &WordList) -> Result<HashData, Error> {
+    match word_list.is_valid() {
+        Ok(_) => {
+            let two_d_array: TwoDArray = TwoDArray::new(word_list)?;
+
+            println!("{two_d_array:?}");
+
+            let x = two_d_array.get_sorted_row_list();
+
+            let n = word_list.len();
+            Ok(HashData {
+                as_string: String::from("test"),
+                as_closure: HashClosure::new(move |a| a.len() * n),
+            })
+        }
+        Err(e) => Err(e),
+    }
 }
