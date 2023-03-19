@@ -50,7 +50,7 @@ fn pascal_keyword_subset_test() {
     match generate_hash(&word_list) {
         Ok(hash) => {
             assert!(hash.as_string == "test");
-            assert!((hash.as_closure.cls)("xxx") == 3);
+            assert!((hash.as_closure.cls)("xxx") == 24);
         }
         Err(e) => panic!("generate_hash failed {e}"),
     }

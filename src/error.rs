@@ -8,7 +8,6 @@ pub struct Error {
 }
 
 impl Error {
-    #[cfg(test)]
     pub(crate) fn new(kind: Kind) -> Error {
         Error { kind }
     }
@@ -22,16 +21,19 @@ impl Error {
 
 /// The different kinds of errors that can occur.
 #[derive(Debug)]
-///#[non_exhaustive]
 pub enum Kind {
     /// An error returned while creating the hash.
     HashError(String),
+    WordListError(String),
+    TwoDArrayError(String),
 }
 
 impl error::Error for Error {
     fn description(&self) -> &str {
         match self.kind {
             Kind::HashError(_) => "Hash error",
+            Kind::WordListError(_) => "Word list error",
+            Kind::TwoDArrayError(_) => "2D Array error",
         }
     }
 }
@@ -40,6 +42,8 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.kind {
             Kind::HashError(s) => write!(f, "Hash Error: {s}"),
+            Kind::WordListError(s) => write!(f, "Word List Error: {s}"),
+            Kind::TwoDArrayError(s) => write!(f, "2D Array Error: {s}"),
         }
     }
 }
@@ -53,6 +57,19 @@ mod tests {
         let e: Error = Error::new(Kind::HashError(String::from("idk")));
         match e.kind() {
             Kind::HashError(s) => assert!(s == "idk"),
+            _ => panic!("Unexpected Kind: {e}"),
+        }
+
+        let e: Error = Error::new(Kind::WordListError(String::from("idk")));
+        match e.kind() {
+            Kind::WordListError(s) => assert!(s == "idk"),
+            _ => panic!("Unexpected Kind: {e}"),
+        }
+
+        let e: Error = Error::new(Kind::TwoDArrayError(String::from("idk")));
+        match e.kind() {
+            Kind::TwoDArrayError(s) => assert!(s == "idk"),
+            _ => panic!("Unexpected Kind: {e}"),
         }
     }
 }
