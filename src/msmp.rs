@@ -50,7 +50,7 @@ pub fn generate_hash(word_list: &WordList) -> Result<HashData, Error> {
 
             println!("{two_d_array:?}");
 
-            let x = two_d_array.get_sorted_row_list();
+            let _x = two_d_array.get_sorted_row_list();
 
             let n = word_list.len();
             Ok(HashData {
