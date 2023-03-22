@@ -11,7 +11,7 @@
 use std::fmt;
 
 pub use error::{Error, Kind};
-pub use two_d_array::TwoDArray;
+pub use two_d_array::{TwoDArray, TwoDArraySizeIterator};
 pub use word_list::WordList;
 
 mod error;
@@ -50,7 +50,10 @@ pub fn generate_hash(word_list: &WordList) -> Result<HashData, Error> {
 
             println!("{two_d_array:?}");
 
-            let _x = two_d_array.get_sorted_row_list();
+            let mut it = TwoDArraySizeIterator::new(&two_d_array);
+            while let Some((index, row)) = it.next_biggest() {
+                println!("{index:?}: {row:?}");
+            }
 
             let n = word_list.len();
             Ok(HashData {
