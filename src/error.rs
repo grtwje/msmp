@@ -26,6 +26,7 @@ pub enum Kind {
     HashError(String),
     WordListError(String),
     TwoDArrayError(String),
+    OneDPackedArrayError(String),
 }
 
 impl error::Error for Error {
@@ -34,6 +35,7 @@ impl error::Error for Error {
             Kind::HashError(_) => "Hash error",
             Kind::WordListError(_) => "Word list error",
             Kind::TwoDArrayError(_) => "2D Array error",
+            Kind::OneDPackedArrayError(_) => "1D Packed Array error",
         }
     }
 }
@@ -44,6 +46,7 @@ impl fmt::Display for Error {
             Kind::HashError(s) => write!(f, "Hash Error: {s}"),
             Kind::WordListError(s) => write!(f, "Word List Error: {s}"),
             Kind::TwoDArrayError(s) => write!(f, "2D Array Error: {s}"),
+            Kind::OneDPackedArrayError(s) => write!(f, "1D Packed Array Error: {s}"),
         }
     }
 }
@@ -69,6 +72,12 @@ mod tests {
         let e: Error = Error::new(Kind::TwoDArrayError(String::from("idk")));
         match e.kind() {
             Kind::TwoDArrayError(s) => assert!(s == "idk"),
+            _ => panic!("Unexpected Kind: {e}"),
+        }
+
+        let e: Error = Error::new(Kind::OneDPackedArrayError(String::from("idk")));
+        match e.kind() {
+            Kind::OneDPackedArrayError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
     }

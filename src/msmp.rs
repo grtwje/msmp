@@ -11,10 +11,12 @@
 use std::fmt;
 
 pub use error::{Error, Kind};
+pub use one_d_packed_array::OneDPackedArray;
 pub use two_d_array::{TwoDArray, TwoDArraySizeIterator};
 pub use word_list::WordList;
 
 mod error;
+mod one_d_packed_array;
 mod two_d_array;
 mod word_list;
 
@@ -48,12 +50,16 @@ pub fn generate_hash(word_list: &WordList) -> Result<HashData, Error> {
         Ok(_) => {
             let two_d_array: TwoDArray = TwoDArray::new(word_list)?;
 
+            let one_d_packed_array: OneDPackedArray = OneDPackedArray::new(&two_d_array)?;
+
             println!("{two_d_array:?}");
 
-            let mut it = TwoDArraySizeIterator::new(&two_d_array);
-            while let Some((index, row)) = it.next_biggest() {
-                println!("{index:?}: {row:?}");
-            }
+            println!("{one_d_packed_array:?}");
+
+            //let mut it = TwoDArraySizeIterator::new(&two_d_array);
+            //while let Some((index, row)) = it.next_biggest() {
+            //    println!("{index:?}: {row:?}");
+            //}
 
             let n = word_list.len();
             Ok(HashData {

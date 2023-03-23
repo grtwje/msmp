@@ -7,6 +7,8 @@ use std::iter::zip;
 pub struct TwoDArray {
     rows: BTreeMap<usize, Row>,
     rows_by_size: Vec<usize>,
+    num_entries: usize,
+    num_rows: usize,
 }
 
 #[derive(Debug)]
@@ -16,15 +18,19 @@ pub struct Row {
 
 impl<'a> TwoDArray {
     pub fn new(word_list: &WordList) -> Result<Self, Error> {
+        let num_words = word_list.len();
+
         let mut _self = TwoDArray {
             rows: BTreeMap::new(),
             rows_by_size: Vec::new(),
+            num_entries: num_words,
+            num_rows: 0,
         };
 
         {
             // Calculate the indices that will be used in the 2D array.
-            let mut row_indices = Vec::new();
-            let mut col_indices = Vec::new();
+            let mut row_indices = Vec::with_capacity(num_words);
+            let mut col_indices = Vec::with_capacity(num_words);
             for word in word_list.list.iter() {
                 let row = h1(word)?;
                 row_indices.push(row);
@@ -60,7 +66,17 @@ impl<'a> TwoDArray {
         rows_by_size.sort_by_key(|k| (Reverse(k.0)));
         _self.rows_by_size = rows_by_size.iter().map(|a| a.1).collect::<Vec<usize>>();
 
+        _self.num_rows = _self.rows.len();
+
         Ok(_self)
+    }
+
+    pub fn get_num_entries(&self) -> usize {
+        self.num_entries
+    }
+
+    pub fn get_num_rows(&self) -> usize {
+        self.num_rows
     }
 
     fn get_row_by_size(&'a self, index: usize) -> Option<(usize, &'a Row)> {
@@ -135,11 +151,41 @@ mod tests {
         let mut word_list = WordList::new();
         word_list.push("WORD");
 
-        if let Err(e) = TwoDArray::new(&word_list) {
-            panic!("Unexpected 2D array creation failure. {e}")
+        match TwoDArray::new(&word_list) {
+            Ok(a) => {
+                assert_eq!(a.get_num_entries(), 1);
+                assert_eq!(a.get_num_rows(), 1);
+            }
+            Err(e) => panic!("Unexpected 2D array creation failure. {e}"),
         }
 
-        word_list.push("WIRED");
+        word_list.push("WIRE");
+        word_list.push("ABLE");
+        match TwoDArray::new(&word_list) {
+            Ok(a) => {
+                assert_eq!(a.get_num_entries(), 3);
+                assert_eq!(a.get_num_rows(), 2);
+                let mut it = TwoDArraySizeIterator::new(&a);
+                if let Some((row_index, row)) = it.next_biggest() {
+                    assert_eq!(row_index, 22);
+                    assert_eq!(row.cols.len(), 2);
+                } else {
+                    panic!("Unexpected iterator None");
+                }
+                if let Some((row_index, row)) = it.next_biggest() {
+                    assert_eq!(row_index, 0);
+                    assert_eq!(row.cols.len(), 1);
+                } else {
+                    panic!("Unexpected iterator None");
+                }
+                if let Some((_, _)) = it.next_biggest() {
+                    panic!("Unexpected iterator Some");
+                }
+            }
+            Err(e) => panic!("Unexpected 2D array creation failure. {e}"),
+        }
+
+        word_list.push("WILD");
         if let Ok(_a) = TwoDArray::new(&word_list) {
             panic!("Undetected collision.");
         }
