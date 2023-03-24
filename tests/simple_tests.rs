@@ -37,7 +37,7 @@ fn load_word_list(input_file_name: &PathBuf) -> Option<WordList> {
 }
 
 #[test]
-fn pascal_keyword_subset_test() {
+fn pascal_keyword_subset_integ_test() {
     let input_file_name: PathBuf = [".", "tests", "data", "pascal_keyword_subset.txt"]
         .iter()
         .collect();
