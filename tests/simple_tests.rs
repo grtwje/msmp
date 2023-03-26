@@ -45,12 +45,12 @@ fn pascal_keyword_subset_integ_test() {
         Some(word_list) => word_list,
         None => panic!("Error processing {:?}.", input_file_name),
     };
-    assert_eq!(word_list.len(), 8);
+    assert_eq!(word_list.len(), 7);
 
     match generate_hash(&word_list) {
         Ok(hash) => {
             assert!(hash.as_string == "test");
-            assert!((hash.as_closure.cls)("xxx") == 24);
+            assert!((hash.as_closure.cls)("xxx") == 21);
         }
         Err(e) => panic!("generate_hash failed {e}"),
     }

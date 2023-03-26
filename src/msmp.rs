@@ -12,7 +12,7 @@ use std::fmt;
 
 pub use error::{Error, Kind};
 pub use one_d_packed_array::OneDPackedArray;
-pub use two_d_array::{TwoDArray, TwoDArraySizeIterator};
+pub use two_d_array::{Row, TwoDArray, TwoDArraySizeIterator};
 pub use word_list::WordList;
 
 mod error;
@@ -52,7 +52,7 @@ pub fn generate_hash(word_list: &WordList) -> Result<HashData, Error> {
 
             let one_d_packed_array: OneDPackedArray = OneDPackedArray::new(&two_d_array)?;
 
-            println!("{two_d_array:?}");
+            //println!("{two_d_array:?}");
 
             println!("{one_d_packed_array:?}");
 

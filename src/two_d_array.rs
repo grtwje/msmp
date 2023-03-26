@@ -39,7 +39,7 @@ impl<'a> TwoDArray {
                 col_indices.push(col);
             }
 
-            // Build the 2D array.
+            // * Fill the 2-D array with values.
             let it = zip(row_indices, col_indices);
             for (i, (r, c)) in it.enumerate() {
                 // Get the row to add to or create a new row if needed.
@@ -58,6 +58,7 @@ impl<'a> TwoDArray {
             }
         }
 
+        // * Sort the rows of the array.
         // Build secondary index, rows sorted by size.
         let mut rows_by_size: Vec<(usize, usize)> = Vec::new();
         for (i, r) in _self.rows.iter() {
@@ -86,6 +87,18 @@ impl<'a> TwoDArray {
             }
         }
         None
+    }
+}
+
+impl Row {
+    pub fn get_col_indices(&self) -> Vec<usize> {
+        let indices: Vec<_> = self.cols.keys().cloned().collect();
+        indices
+    }
+
+    pub fn get_col_values(&self) -> Vec<usize> {
+        let values: Vec<_> = self.cols.values().cloned().collect();
+        values
     }
 }
 
