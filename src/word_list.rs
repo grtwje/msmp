@@ -75,7 +75,7 @@ mod tests {
 
     #[test]
     fn word_list_unit_test() {
-        let mut wl = WordList::new();
+        let mut wl: WordList = Default::default();
         assert!(wl.is_empty());
         if let Ok(()) = wl.is_valid() {
             panic!("Empty not detected.")
@@ -94,6 +94,7 @@ mod tests {
         if let Ok(()) = wl.is_valid() {
             panic!("Duplicate not detected.");
         }
+        println!("{:?}", wl);
 
         let mut wl2 = WordList::new();
         assert!(wl2.is_empty());

@@ -168,6 +168,7 @@ mod tests {
             Ok(a) => {
                 assert_eq!(a.get_num_entries(), 1);
                 assert_eq!(a.get_num_rows(), 1);
+                println!("{:?}", a);
             }
             Err(e) => panic!("Unexpected 2D array creation failure. {e}"),
         }
@@ -179,9 +180,12 @@ mod tests {
                 assert_eq!(a.get_num_entries(), 3);
                 assert_eq!(a.get_num_rows(), 2);
                 let mut it = TwoDArraySizeIterator::new(&a);
+                println!("{:?}", it);
                 if let Some((row_index, row)) = it.next_biggest() {
                     assert_eq!(row_index, 22);
                     assert_eq!(row.cols.len(), 2);
+                    assert_eq!(row.get_col_indices(), vec![3, 4]);
+                    assert_eq!(row.get_col_values(), vec![1, 2]);
                 } else {
                     panic!("Unexpected iterator None");
                 }

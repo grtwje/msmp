@@ -1,4 +1,3 @@
-use std::error;
 use std::fmt;
 
 /// An error that can occur in this library.
@@ -24,20 +23,15 @@ impl Error {
 pub enum Kind {
     /// An error returned while creating the hash.
     HashError(String),
-    WordListError(String),
-    TwoDArrayError(String),
-    OneDPackedArrayError(String),
-}
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match self.kind {
-            Kind::HashError(_) => "Hash error",
-            Kind::WordListError(_) => "Word list error",
-            Kind::TwoDArrayError(_) => "2D Array error",
-            Kind::OneDPackedArrayError(_) => "1D Packed Array error",
-        }
-    }
+    /// An error returned while creating the word list.
+    WordListError(String),
+
+    /// An error returned while creating the 2D array.
+    TwoDArrayError(String),
+
+    /// An error returned while creating the 1D packed array.
+    OneDPackedArrayError(String),
 }
 
 impl fmt::Display for Error {
@@ -62,23 +56,27 @@ mod tests {
             Kind::HashError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
+        println!("{e}, {e:?}");
 
         let e: Error = Error::new(Kind::WordListError(String::from("idk")));
         match e.kind() {
             Kind::WordListError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
+        println!("{e}");
 
         let e: Error = Error::new(Kind::TwoDArrayError(String::from("idk")));
         match e.kind() {
             Kind::TwoDArrayError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
+        println!("{e}");
 
         let e: Error = Error::new(Kind::OneDPackedArrayError(String::from("idk")));
         match e.kind() {
             Kind::OneDPackedArrayError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
+        println!("{e}");
     }
 }
