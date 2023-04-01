@@ -50,6 +50,18 @@ impl OneDPackedArray {
         Ok(_self)
     }
 
+    pub fn get_rlt(&self, row_index: usize) -> Option<&isize> {
+        self.rlt.get(&row_index)
+    }
+
+    pub fn len(&self) -> usize {
+        self.array.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.array.is_empty()
+    }
+
     fn not_inserted(
         &mut self,
         unused_array_indices: &mut BTreeSet<usize>,
@@ -118,6 +130,9 @@ mod tests {
                 println!("{:?}", odpa);
                 assert_eq!(odpa.array, vec![1, 4, 2, 3, 5]);
                 assert_eq!(odpa.rlt, [(0, 0), (1, 4)].iter().cloned().collect());
+                assert_eq!(odpa.get_rlt(0), Some(&0));
+                assert_eq!(odpa.len(), 5);
+                assert!(!odpa.is_empty());
             } else {
                 panic!("Unable to create OneDPackedArray");
             }

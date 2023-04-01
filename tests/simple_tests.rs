@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
@@ -50,7 +51,24 @@ fn pascal_keyword_subset_integ_test() {
     match generate_hash(&word_list) {
         Ok(hash) => {
             assert!(hash.as_string == "test");
-            assert!((hash.as_closure.cls)("xxx") == 24);
+            assert_eq!((hash.as_closure.cls)("AND"), 4);
+            assert_eq!((hash.as_closure.cls)("BEGIN"), 7);
+            assert_eq!((hash.as_closure.cls)("CHAR"), 3);
+            assert_eq!((hash.as_closure.cls)("EOF"), 2);
+
+            let w_it = word_list.list.iter();
+            let mut hash_results = BTreeSet::new();
+            for word in w_it {
+                let hash_result = (hash.as_closure.cls)(word);
+                if hash_results.contains(&hash_result) {
+                    panic!("Collision detected.");
+                }
+                hash_results.insert(hash_result);
+            }
+            let h_it = hash_results.iter();
+            for (i, hash_result) in h_it.enumerate() {
+                assert_eq!(*hash_result, i);
+            }
         }
         Err(e) => panic!("generate_hash failed {e}"),
     }

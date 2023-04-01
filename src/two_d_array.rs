@@ -125,7 +125,8 @@ impl<'a> TwoDArraySizeIterator<'a> {
     }
 }
 
-fn h1(word: &str) -> Result<usize, Error> {
+// try to get rid of pub
+pub fn h1(word: &str) -> Result<usize, Error> {
     if let Some(first_char) = word.chars().next() {
         char_to_index(first_char)
     } else {
@@ -135,7 +136,8 @@ fn h1(word: &str) -> Result<usize, Error> {
     }
 }
 
-fn h2(word: &str) -> Result<usize, Error> {
+// try to get rid of pub
+pub fn h2(word: &str) -> Result<usize, Error> {
     if let Some(last_char) = word.chars().last() {
         char_to_index(last_char)
     } else {

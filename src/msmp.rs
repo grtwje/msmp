@@ -54,17 +54,18 @@ pub fn generate_hash(word_list: &WordList) -> Result<HashData, Error> {
 
             //println!("{two_d_array:?}");
 
-            println!("{one_d_packed_array:?}");
+            //println!("{one_d_packed_array:?}");
 
-            //let mut it = TwoDArraySizeIterator::new(&two_d_array);
-            //while let Some((index, row)) = it.next_biggest() {
-            //    println!("{index:?}: {row:?}");
-            //}
-
-            let n = word_list.len();
             Ok(HashData {
                 as_string: String::from("test"),
-                as_closure: HashClosure::new(move |a| a.len() * n),
+                as_closure: HashClosure::new(move |a| {
+                    let row_index = two_d_array::h1(a).unwrap_or(0);
+                    let col_index = two_d_array::h2(a).unwrap_or(0);
+                    let rlt_val = one_d_packed_array.get_rlt(row_index).unwrap_or(&0);
+                    let tmp = usize::try_from(rlt_val + isize::try_from(col_index).unwrap_or(0))
+                        .unwrap_or(0);
+                    tmp % one_d_packed_array.len()
+                }),
             })
         }
         Err(e) => Err(e),
