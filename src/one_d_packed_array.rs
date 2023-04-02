@@ -58,6 +58,7 @@ impl OneDPackedArray {
         self.array.len()
     }
 
+    #[cfg(test)]
     pub fn is_empty(&self) -> bool {
         self.array.is_empty()
     }
@@ -114,10 +115,12 @@ impl OneDPackedArray {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::WordList;
+    use crate::{ElcAlgorithm, WordList};
 
     #[test]
     fn one_d_packed_array_unit_test() {
+        let hash_algorithm: ElcAlgorithm = Default::default();
+
         let mut word_list = WordList::new();
         word_list.push("AXXA");
         word_list.push("AXXC");
@@ -125,7 +128,7 @@ mod tests {
         word_list.push("BXXA");
         word_list.push("BXXC");
 
-        if let Ok(tda) = TwoDArray::new(&word_list) {
+        if let Ok(tda) = TwoDArray::new(&word_list, &hash_algorithm) {
             if let Ok(odpa) = OneDPackedArray::new(&tda) {
                 println!("{:?}", odpa);
                 assert_eq!(odpa.array, vec![1, 4, 2, 3, 5]);
@@ -141,7 +144,7 @@ mod tests {
         }
 
         word_list.push("BXXZ");
-        if let Ok(tda) = TwoDArray::new(&word_list) {
+        if let Ok(tda) = TwoDArray::new(&word_list, &hash_algorithm) {
             match OneDPackedArray::new(&tda) {
                 Ok(_) => panic!("Should not be able to create OneDPackedArray"),
                 Err(e) => match e.kind() {
@@ -159,7 +162,7 @@ mod tests {
         word_list2.push("WORD");
         word_list2.push("WORF");
 
-        if let Ok(tda) = TwoDArray::new(&word_list2) {
+        if let Ok(tda) = TwoDArray::new(&word_list2, &hash_algorithm) {
             match OneDPackedArray::new(&tda) {
                 Ok(_) => panic!("Should not be able to create OneDPackedArray"),
                 Err(e) => match e.kind() {

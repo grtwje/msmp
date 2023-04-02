@@ -32,6 +32,9 @@ pub enum Kind {
 
     /// An error returned while creating the 1D packed array.
     OneDPackedArrayError(String),
+
+    /// An error returned while creating the ELC algorithm.
+    ElcAlgorithmError(String),
 }
 
 impl fmt::Display for Error {
@@ -41,6 +44,7 @@ impl fmt::Display for Error {
             Kind::WordListError(s) => write!(f, "Word List Error: {s}"),
             Kind::TwoDArrayError(s) => write!(f, "2D Array Error: {s}"),
             Kind::OneDPackedArrayError(s) => write!(f, "1D Packed Array Error: {s}"),
+            Kind::ElcAlgorithmError(s) => write!(f, "ELC Algorithm Error: {s}"),
         }
     }
 }
@@ -75,6 +79,13 @@ mod tests {
         let e: Error = Error::new(Kind::OneDPackedArrayError(String::from("idk")));
         match e.kind() {
             Kind::OneDPackedArrayError(s) => assert!(s == "idk"),
+            _ => panic!("Unexpected Kind: {e}"),
+        }
+        println!("{e}");
+
+        let e: Error = Error::new(Kind::ElcAlgorithmError(String::from("idk")));
+        match e.kind() {
+            Kind::ElcAlgorithmError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
         println!("{e}");

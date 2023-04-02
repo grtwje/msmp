@@ -1,4 +1,4 @@
-use crate::{Error, Kind, WordList};
+use crate::{Error, HashAlgorithm, Kind, WordList};
 use std::cmp::Reverse;
 use std::collections::BTreeMap;
 use std::iter::zip;
@@ -17,7 +17,7 @@ pub struct Row {
 }
 
 impl<'a> TwoDArray {
-    pub fn new(word_list: &WordList) -> Result<Self, Error> {
+    pub fn new(word_list: &WordList, hash_algorithm: &dyn HashAlgorithm) -> Result<Self, Error> {
         let num_words = word_list.len();
 
         let mut _self = TwoDArray {
@@ -32,10 +32,10 @@ impl<'a> TwoDArray {
             let mut row_indices = Vec::with_capacity(num_words);
             let mut col_indices = Vec::with_capacity(num_words);
             for word in word_list.list.iter() {
-                let row = h1(word)?;
+                let row = hash_algorithm.h1(word)?;
                 row_indices.push(row);
 
-                let col = h2(word)?;
+                let col = hash_algorithm.h2(word)?;
                 col_indices.push(col);
             }
 
@@ -76,6 +76,7 @@ impl<'a> TwoDArray {
         self.num_entries
     }
 
+    #[cfg(test)]
     pub fn get_num_rows(&self) -> usize {
         self.num_rows
     }
@@ -125,48 +126,19 @@ impl<'a> TwoDArraySizeIterator<'a> {
     }
 }
 
-// try to get rid of pub
-pub fn h1(word: &str) -> Result<usize, Error> {
-    if let Some(first_char) = word.chars().next() {
-        char_to_index(first_char)
-    } else {
-        Err(Error::new(Kind::TwoDArrayError(format!(
-            "Could not find first letter of ({word})."
-        ))))
-    }
-}
-
-// try to get rid of pub
-pub fn h2(word: &str) -> Result<usize, Error> {
-    if let Some(last_char) = word.chars().last() {
-        char_to_index(last_char)
-    } else {
-        Err(Error::new(Kind::TwoDArrayError(format!(
-            "Could not find last letter of ({word})."
-        ))))
-    }
-}
-
-fn char_to_index(c: char) -> Result<usize, Error> {
-    if c.is_ascii_uppercase() {
-        Ok((c as usize) - ('A' as usize))
-    } else {
-        Err(Error::new(Kind::TwoDArrayError(format!(
-            "Unexpected character encountered ({c})"
-        ))))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ElcAlgorithm;
 
     #[test]
     fn two_d_array_unit_test() {
+        let hash_algorithm: ElcAlgorithm = Default::default();
+
         let mut word_list = WordList::new();
         word_list.push("WORD");
 
-        match TwoDArray::new(&word_list) {
+        match TwoDArray::new(&word_list, &hash_algorithm) {
             Ok(a) => {
                 assert_eq!(a.get_num_entries(), 1);
                 assert_eq!(a.get_num_rows(), 1);
@@ -177,7 +149,7 @@ mod tests {
 
         word_list.push("WIRE");
         word_list.push("ABLE");
-        match TwoDArray::new(&word_list) {
+        match TwoDArray::new(&word_list, &hash_algorithm) {
             Ok(a) => {
                 assert_eq!(a.get_num_entries(), 3);
                 assert_eq!(a.get_num_rows(), 2);
@@ -205,7 +177,7 @@ mod tests {
         }
 
         word_list.push("WILD");
-        if let Ok(_a) = TwoDArray::new(&word_list) {
+        if let Ok(_a) = TwoDArray::new(&word_list, &hash_algorithm) {
             panic!("Undetected collision.");
         }
     }

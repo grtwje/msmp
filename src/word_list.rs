@@ -69,6 +69,16 @@ impl Default for WordList {
     }
 }
 
+impl FromIterator<String> for WordList {
+    fn from_iter<I: IntoIterator<Item = String>>(iter: I) -> Self {
+        let mut wl = WordList::new();
+        for word in iter {
+            wl.push(&word);
+        }
+        wl
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -105,5 +115,11 @@ mod tests {
         if let Ok(()) = wl2.is_valid() {
             panic!("lower case not detected");
         }
+
+        let wl3: WordList = ["HELLO", "WORLD", "TEST"]
+            .iter()
+            .map(|word| word.to_string())
+            .collect();
+        assert!(wl3.len() == 3);
     }
 }
