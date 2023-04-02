@@ -1,5 +1,6 @@
 use crate::{Error, HashAlgorithm, Kind};
 
+/// The ElcAlgorithm.
 #[derive(Debug)]
 pub struct ElcAlgorithm {
     elc: usize,
@@ -7,8 +8,10 @@ pub struct ElcAlgorithm {
 }
 
 impl ElcAlgorithm {
-    pub fn new(elc: usize, num_vals: usize) -> Result<Self, Error> {
-        Ok(Self { elc, num_vals })
+    /// Creates a new ElcAlgorithm.
+    #[must_use]
+    pub fn new(elc: usize, num_vals: usize) -> Self {
+        Self { elc, num_vals }
     }
 
     fn char_to_index(c: char) -> usize {
@@ -99,7 +102,7 @@ mod tests {
         assert_eq!(ElcAlgorithm::char_to_index('Z'), 25);
 
         // ----
-        let hash_algorithm: ElcAlgorithm = Default::default();
+        let hash_algorithm: ElcAlgorithm = ElcAlgorithm::default();
 
         assert_eq!(hash_algorithm.h1("A").unwrap(), 0);
         assert_eq!(hash_algorithm.h1("B").unwrap(), 1);
@@ -120,7 +123,7 @@ mod tests {
         assert_eq!(hash_algorithm.step(1, 1), 27);
 
         // ----
-        let hash_algorithm: ElcAlgorithm = ElcAlgorithm::new(2, 26).unwrap();
+        let hash_algorithm: ElcAlgorithm = ElcAlgorithm::new(2, 26);
 
         assert_eq!(hash_algorithm.h1("AA").unwrap(), 0);
         assert_eq!(hash_algorithm.h1("AB").unwrap(), 1);

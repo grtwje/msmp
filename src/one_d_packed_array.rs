@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::convert::TryFrom;
 use std::iter::zip;
 
-use crate::{Error, Kind, Row, TwoDArray, TwoDArraySizeIterator};
+use crate::{Error, Kind, Row, RowSizeIterator, TwoDArray};
 
 #[derive(Debug)]
 pub struct OneDPackedArray {
@@ -12,7 +12,7 @@ pub struct OneDPackedArray {
 
 impl OneDPackedArray {
     pub fn new(two_d_array: &TwoDArray) -> Result<Self, Error> {
-        let mut _self = OneDPackedArray {
+        let mut self_ = OneDPackedArray {
             array: vec![0; two_d_array.get_num_entries()],
             rlt: BTreeMap::new(),
         };
@@ -21,24 +21,44 @@ impl OneDPackedArray {
             (0..two_d_array.get_num_entries()).collect();
 
         // * Loop through all rows containing one or more values.
-        let mut it = TwoDArraySizeIterator::new(two_d_array);
+        let mut it = RowSizeIterator::new(two_d_array);
         while let Some((row_index, row)) = it.next_biggest() {
             let col_indices = row.get_col_indices();
             if let Some(fist_col_index) = col_indices.first() {
                 if let Ok(rlt_seed) = isize::try_from(*fist_col_index) {
-                    let first_array_unused_index =
-                        *(unused_array_indices.first().unwrap()) as isize;
-                    let mut rlt_value = -rlt_seed + first_array_unused_index;
+                    if let Some(first_array_unused_index) = unused_array_indices.first() {
+                        if let Ok(first_array_unused_index) =
+                            isize::try_from(*first_array_unused_index)
+                        {
+                            let mut rlt_value = -rlt_seed + first_array_unused_index;
 
-                    while _self.not_inserted(&mut unused_array_indices, row, rlt_value) {
-                        rlt_value += 1; // todo step to next unused index
-                        if rlt_value + rlt_seed >= two_d_array.get_num_entries() as isize {
+                            while self_.not_inserted(&mut unused_array_indices, row, rlt_value) {
+                                rlt_value += 1; // todo step to next unused index
+                                if let Ok(num_entries) =
+                                    isize::try_from(two_d_array.get_num_entries())
+                                {
+                                    if rlt_value + rlt_seed >= num_entries {
+                                        return Err(Error::new(Kind::OneDPackedArrayError(
+                                            "unable to minimally pack array".to_string(),
+                                        )));
+                                    }
+                                } else {
+                                    return Err(Error::new(Kind::OneDPackedArrayError(
+                                        "Unexpected num entries overflow".to_string(),
+                                    )));
+                                }
+                            }
+                            self_.rlt.insert(row_index, rlt_value);
+                        } else {
                             return Err(Error::new(Kind::OneDPackedArrayError(
-                                "unable to minimally pack array".to_string(),
+                                "Unexpected index overflow".to_string(),
                             )));
                         }
+                    } else {
+                        return Err(Error::new(Kind::OneDPackedArrayError(
+                            "Unexpected no unused index found".to_string(),
+                        )));
                     }
-                    _self.rlt.insert(row_index, rlt_value);
                 } else {
                     return Err(Error::new(Kind::OneDPackedArrayError(
                         "Unexpected empty row found".to_string(),
@@ -47,7 +67,7 @@ impl OneDPackedArray {
             }
         }
 
-        Ok(_self)
+        Ok(self_)
     }
 
     pub fn get_rlt(&self, row_index: usize) -> Option<&isize> {
@@ -106,9 +126,16 @@ impl OneDPackedArray {
     }
 
     fn adjust_index(index: usize, adj: isize, num_entries: usize) -> usize {
-        let adj_index = ((index as isize) + adj) % num_entries as isize;
-        assert!(adj_index >= 0);
-        adj_index as usize
+        let index_ = isize::try_from(index);
+        let num_entries_ = isize::try_from(num_entries);
+        if let (Ok(index_), Ok(num_entries_)) = (index_, num_entries_) {
+            let adj_index = (index_ + adj) % num_entries_;
+            if let Ok(rv) = usize::try_from(adj_index) {
+                return rv;
+            }
+            panic!("Unexpected negative adjusted index: {adj_index}");
+        }
+        panic!("Unexpected parameter overflow: {index}, {num_entries}");
     }
 }
 
@@ -119,7 +146,7 @@ mod tests {
 
     #[test]
     fn one_d_packed_array_unit_test() {
-        let hash_algorithm: ElcAlgorithm = Default::default();
+        let hash_algorithm: ElcAlgorithm = ElcAlgorithm::default();
 
         let mut word_list = WordList::new();
         word_list.push("AXXA");
@@ -130,9 +157,9 @@ mod tests {
 
         if let Ok(tda) = TwoDArray::new(&word_list, &hash_algorithm) {
             if let Ok(odpa) = OneDPackedArray::new(&tda) {
-                println!("{:?}", odpa);
+                println!("{odpa:?}");
                 assert_eq!(odpa.array, vec![1, 4, 2, 3, 5]);
-                assert_eq!(odpa.rlt, [(0, 0), (1, 4)].iter().cloned().collect());
+                assert_eq!(odpa.rlt, [(0, 0), (1, 4)].iter().copied().collect());
                 assert_eq!(odpa.get_rlt(0), Some(&0));
                 assert_eq!(odpa.len(), 5);
                 assert!(!odpa.is_empty());
@@ -149,7 +176,7 @@ mod tests {
                 Ok(_) => panic!("Should not be able to create OneDPackedArray"),
                 Err(e) => match e.kind() {
                     Kind::OneDPackedArrayError(s) => {
-                        assert_eq!(s, "unable to minimally pack array")
+                        assert_eq!(s, "unable to minimally pack array");
                     }
                     _ => panic!("Unexpected error type"),
                 },
@@ -167,7 +194,7 @@ mod tests {
                 Ok(_) => panic!("Should not be able to create OneDPackedArray"),
                 Err(e) => match e.kind() {
                     Kind::OneDPackedArrayError(s) => {
-                        assert_eq!(s, "unable to minimally pack array")
+                        assert_eq!(s, "unable to minimally pack array");
                     }
                     _ => panic!("Unexpected error type"),
                 },

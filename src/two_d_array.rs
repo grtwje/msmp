@@ -20,7 +20,7 @@ impl<'a> TwoDArray {
     pub fn new(word_list: &WordList, hash_algorithm: &dyn HashAlgorithm) -> Result<Self, Error> {
         let num_words = word_list.len();
 
-        let mut _self = TwoDArray {
+        let mut self_ = TwoDArray {
             rows: BTreeMap::new(),
             rows_by_size: Vec::new(),
             num_entries: num_words,
@@ -31,7 +31,7 @@ impl<'a> TwoDArray {
             // Calculate the indices that will be used in the 2D array.
             let mut row_indices = Vec::with_capacity(num_words);
             let mut col_indices = Vec::with_capacity(num_words);
-            for word in word_list.list.iter() {
+            for word in &word_list.list {
                 let row = hash_algorithm.h1(word)?;
                 row_indices.push(row);
 
@@ -43,7 +43,7 @@ impl<'a> TwoDArray {
             let it = zip(row_indices, col_indices);
             for (i, (r, c)) in it.enumerate() {
                 // Get the row to add to or create a new row if needed.
-                let row = _self.rows.entry(r).or_insert_with(|| Row {
+                let row = self_.rows.entry(r).or_insert_with(|| Row {
                     cols: BTreeMap::new(),
                 });
 
@@ -61,15 +61,15 @@ impl<'a> TwoDArray {
         // * Sort the rows of the array.
         // Build secondary index, rows sorted by size.
         let mut rows_by_size: Vec<(usize, usize)> = Vec::new();
-        for (i, r) in _self.rows.iter() {
+        for (i, r) in &self_.rows {
             rows_by_size.push((r.cols.len(), *i));
         }
         rows_by_size.sort_by_key(|k| (Reverse(k.0)));
-        _self.rows_by_size = rows_by_size.iter().map(|a| a.1).collect::<Vec<usize>>();
+        self_.rows_by_size = rows_by_size.iter().map(|a| a.1).collect::<Vec<usize>>();
 
-        _self.num_rows = _self.rows.len();
+        self_.num_rows = self_.rows.len();
 
-        Ok(_self)
+        Ok(self_)
     }
 
     pub fn get_num_entries(&self) -> usize {
@@ -93,25 +93,25 @@ impl<'a> TwoDArray {
 
 impl Row {
     pub fn get_col_indices(&self) -> Vec<usize> {
-        let indices: Vec<_> = self.cols.keys().cloned().collect();
+        let indices: Vec<_> = self.cols.keys().copied().collect();
         indices
     }
 
     pub fn get_col_values(&self) -> Vec<usize> {
-        let values: Vec<_> = self.cols.values().cloned().collect();
+        let values: Vec<_> = self.cols.values().copied().collect();
         values
     }
 }
 
 #[derive(Debug)]
-pub struct TwoDArraySizeIterator<'a> {
+pub struct RowSizeIterator<'a> {
     two_d_array: &'a TwoDArray,
     index: usize,
 }
 
-impl<'a> TwoDArraySizeIterator<'a> {
+impl<'a> RowSizeIterator<'a> {
     pub fn new(array: &'a TwoDArray) -> Self {
-        TwoDArraySizeIterator {
+        RowSizeIterator {
             two_d_array: array,
             index: 0,
         }
@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn two_d_array_unit_test() {
-        let hash_algorithm: ElcAlgorithm = Default::default();
+        let hash_algorithm: ElcAlgorithm = ElcAlgorithm::default();
 
         let mut word_list = WordList::new();
         word_list.push("WORD");
@@ -142,7 +142,7 @@ mod tests {
             Ok(a) => {
                 assert_eq!(a.get_num_entries(), 1);
                 assert_eq!(a.get_num_rows(), 1);
-                println!("{:?}", a);
+                println!("{a:?}");
             }
             Err(e) => panic!("Unexpected 2D array creation failure. {e}"),
         }
@@ -153,8 +153,8 @@ mod tests {
             Ok(a) => {
                 assert_eq!(a.get_num_entries(), 3);
                 assert_eq!(a.get_num_rows(), 2);
-                let mut it = TwoDArraySizeIterator::new(&a);
-                println!("{:?}", it);
+                let mut it = RowSizeIterator::new(&a);
+                println!("{it:?}");
                 if let Some((row_index, row)) = it.next_biggest() {
                     assert_eq!(row_index, 22);
                     assert_eq!(row.cols.len(), 2);

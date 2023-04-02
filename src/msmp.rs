@@ -1,10 +1,12 @@
 //! msmp
+//! ====
+//! A library for generating a hash function from a word list.
 
 #![warn(unused_crate_dependencies)]
 #![deny(unused_extern_crates)]
-//#![warn(missing_docs)]
+#![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
-//#![warn(clippy::all, clippy::pedantic)]
+#![warn(clippy::all, clippy::pedantic)]
 #![warn(clippy::all)]
 #![allow(clippy::doc_markdown)]
 
@@ -16,7 +18,7 @@ pub use error::{Error, Kind};
 pub use word_list::WordList;
 
 use one_d_packed_array::OneDPackedArray;
-use two_d_array::{Row, TwoDArray, TwoDArraySizeIterator};
+use two_d_array::{Row, RowSizeIterator, TwoDArray};
 
 mod elc_algorithm;
 mod error;
@@ -24,12 +26,20 @@ mod one_d_packed_array;
 mod two_d_array;
 mod word_list;
 
+/// A trait for a hash algorithm.
 pub trait HashAlgorithm {
+    /// # Errors
+    /// Will return `Err` if `word` is not a valid word.
     fn h1(&self, word: &str) -> Result<usize, Error>;
+
+    /// # Errors
+    /// Will return `Err` if `word` is not a valid word.
     fn h2(&self, word: &str) -> Result<usize, Error>;
 }
 
+///  A closure that takes a word and returns a hash value.
 pub struct HashClosure {
+    /// A closure that takes a word and returns a hash value.
     pub cls: Box<dyn Fn(&str) -> usize>,
 }
 
@@ -45,9 +55,14 @@ impl HashClosure {
     }
 }
 
+/// A struct containing a string representation of the hash function and a
+/// closure that takes a word and returns a hash value.
 #[derive(Debug)]
 pub struct HashData {
+    /// A string representation of the hash function.
     pub as_string: String,
+
+    /// A closure that takes a word and returns a hash value.
     pub as_closure: HashClosure,
 }
 

@@ -34,7 +34,7 @@ fn pascal_keyword_subset_integ_test() {
     };
     assert_eq!(word_list.len(), 8);
 
-    let hash_algorithm: ElcAlgorithm = Default::default();
+    let hash_algorithm: ElcAlgorithm = ElcAlgorithm::default();
 
     match generate_hash(&word_list, hash_algorithm) {
         Ok(hash) => {
