@@ -90,7 +90,7 @@ pub fn generate_hash(
             }
 
             Ok(HashData {
-                as_string: String::from("test"),
+                as_string: text(&one_d_packed_array, &hash_algorithm),
                 as_closure: HashClosure::new(move |a| {
                     hash(a, &one_d_packed_array, &hash_algorithm)
                 }),
@@ -106,6 +106,18 @@ fn hash(word: &str, packed_array: &OneDPackedArray, hash_algorithm: &dyn HashAlg
     let rlt_val = packed_array.get_rlt(row_index).unwrap_or(&0);
     let tmp = usize::try_from(rlt_val + isize::try_from(col_index).unwrap_or(0)).unwrap_or(0);
     tmp % packed_array.len()
+}
+
+fn text(packed_array: &OneDPackedArray, hash_algorithm: &dyn HashAlgorithm) -> String {
+    let rv = format!(
+        "row_lookup_table = [{rlt}]\n\
+         row_index = h1(word)\n\
+         col_index = h2(word)\n\
+         hash_value = (row_lookup_table[row_index] + col_index) % {len}\n",
+        rlt = packed_array.get_rlt_text(),
+        len = packed_array.len()
+    );
+    rv
 }
 
 fn verify(

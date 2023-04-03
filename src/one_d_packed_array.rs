@@ -78,6 +78,32 @@ impl OneDPackedArray {
         self.array.len()
     }
 
+    pub fn get_rlt_text(&self) -> String {
+        let mut rv = String::new();
+        let it = self.rlt.iter();
+        let mut previous_row_index = -1;
+        for (row_index, rlt_value) in it {
+            if previous_row_index != -1 {
+                rv.push_str(", ");
+            }
+            let row_index_ = isize::try_from(*row_index);
+            if let Ok(row_index) = row_index_ {
+                while previous_row_index + 1 < row_index {
+                    rv.push_str("0, ");
+                    previous_row_index += 1;
+                }
+            } else {
+                panic!("Unexpected row index overflow: {row_index}");
+            }
+
+            rv.push_str(&format!("{rlt_value}"));
+            if let Ok(row_index) = row_index_ {
+                previous_row_index = row_index;
+            }
+        }
+        rv
+    }
+
     #[cfg(test)]
     pub fn is_empty(&self) -> bool {
         self.array.is_empty()

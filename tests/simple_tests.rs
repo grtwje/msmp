@@ -38,6 +38,7 @@ fn pascal_keyword_subset_integ_test() {
 
     match generate_hash(&word_list, hash_algorithm) {
         Ok(hash) => {
+            println!(":::\n{}:::", hash.as_string);
             assert!(hash.as_string == "test");
             assert_eq!((hash.as_closure.cls)("AND"), 4);
             assert_eq!((hash.as_closure.cls)("BEGIN"), 7);
