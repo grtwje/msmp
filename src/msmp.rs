@@ -1,26 +1,53 @@
 //! msmp
+//! ====
+//! A library for generating a hash function from a word list.
 
 #![warn(unused_crate_dependencies)]
 #![deny(unused_extern_crates)]
-//#![warn(missing_docs)]
+#![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
-//#![warn(clippy::all, clippy::pedantic)]
+#![warn(clippy::all, clippy::pedantic)]
 #![warn(clippy::all)]
 #![allow(clippy::doc_markdown)]
 
+use std::collections::BTreeSet;
 use std::fmt;
 
+pub use elc_algorithm::ElcAlgorithm;
 pub use error::{Error, Kind};
-pub use one_d_packed_array::OneDPackedArray;
-pub use two_d_array::{TwoDArray, TwoDArraySizeIterator};
 pub use word_list::WordList;
 
+use one_d_packed_array::OneDPackedArray;
+use rlt::Rlt;
+use two_d_array::{Row, RowSizeIterator, TwoDArray};
+
+mod elc_algorithm;
 mod error;
 mod one_d_packed_array;
+mod rlt;
 mod two_d_array;
 mod word_list;
 
+/// A trait for a hash algorithm.
+pub trait HashAlgorithm {
+    /// # Errors
+    /// Will return `Err` if `word` is not a valid word.
+    fn h1(&self, word: &str) -> Result<usize, Error>;
+
+    /// # Errors
+    /// Will return `Err` if `word` is not a valid word.
+    fn h2(&self, word: &str) -> Result<usize, Error>;
+
+    /// A representation of the hash function h1 as a string of pseudo code.
+    fn h1_as_text(&self) -> String;
+
+    /// A representation of the hash function h2 as a string of pseudo code.
+    fn h2_as_text(&self) -> String;
+}
+
+///  A closure that takes a word and returns a hash value.
 pub struct HashClosure {
+    /// A closure that takes a word and returns a hash value.
     pub cls: Box<dyn Fn(&str) -> usize>,
 }
 
@@ -36,37 +63,94 @@ impl HashClosure {
     }
 }
 
+/// A struct containing a string representation of the hash function and a
+/// closure that takes a word and returns a hash value.
 #[derive(Debug)]
 pub struct HashData {
+    /// A string representation of the hash function.
     pub as_string: String,
+
+    /// A closure that takes a word and returns a hash value.
     pub as_closure: HashClosure,
 }
 
 /// # Errors
 ///
 /// Will return `Err` if `word_list` fails to resolve to a hash function.
-pub fn generate_hash(word_list: &WordList) -> Result<HashData, Error> {
+pub fn generate_hash(
+    word_list: &WordList,
+    hash_algorithm: impl HashAlgorithm + 'static,
+) -> Result<HashData, Error> {
     match word_list.is_valid() {
         Ok(_) => {
-            let two_d_array: TwoDArray = TwoDArray::new(word_list)?;
+            let two_d_array: TwoDArray = TwoDArray::new(word_list, &hash_algorithm)?;
 
             let one_d_packed_array: OneDPackedArray = OneDPackedArray::new(&two_d_array)?;
 
-            println!("{two_d_array:?}");
+            //println!("{two_d_array:?}");
 
-            println!("{one_d_packed_array:?}");
+            //println!("{one_d_packed_array:?}");
 
-            //let mut it = TwoDArraySizeIterator::new(&two_d_array);
-            //while let Some((index, row)) = it.next_biggest() {
-            //    println!("{index:?}: {row:?}");
-            //}
+            verify(word_list, one_d_packed_array.get_rlt(), &hash_algorithm)?;
 
-            let n = word_list.len();
             Ok(HashData {
-                as_string: String::from("test"),
-                as_closure: HashClosure::new(move |a| a.len() * n),
+                as_string: text(one_d_packed_array.get_rlt(), &hash_algorithm),
+                as_closure: HashClosure::new(move |a| {
+                    hash(a, one_d_packed_array.get_rlt(), &hash_algorithm)
+                }),
             })
         }
         Err(e) => Err(e),
     }
+}
+
+fn hash(word: &str, rlt: &Rlt, hash_algorithm: &dyn HashAlgorithm) -> usize {
+    let row_index = hash_algorithm.h1(word).unwrap_or(0);
+    let col_index = hash_algorithm.h2(word).unwrap_or(0);
+    let rlt_val = rlt.get(row_index).unwrap_or(&0);
+    let tmp = usize::try_from(rlt_val + isize::try_from(col_index).unwrap_or(0)).unwrap_or(0);
+    tmp % rlt.get_num_entries()
+}
+
+fn text(rlt: &Rlt, hash_algorithm: &dyn HashAlgorithm) -> String {
+    let rv = format!(
+        "row_lookup_table = [{rlt}]\n\
+         row_index = {h1}\n\
+         col_index = {h2}\n\
+         hash_value = (row_lookup_table[row_index] + col_index) % {len}\n",
+        rlt = rlt.get_as_text(),
+        h1 = hash_algorithm.h1_as_text(),
+        h2 = hash_algorithm.h2_as_text(),
+        len = rlt.get_num_entries()
+    );
+    rv
+}
+
+fn verify(
+    word_list: &WordList,
+    rlt: &Rlt,
+    hash_algorithm: &dyn HashAlgorithm,
+) -> Result<(), Error> {
+    let w_it = word_list.list.iter();
+    let mut hash_results = BTreeSet::new();
+    for word in w_it {
+        let hash_result = hash(word, rlt, hash_algorithm);
+        println!("{word} -> {hash_result}");
+        if hash_results.contains(&hash_result) {
+            return Err(Error::new(Kind::HashError(
+                "Collision detected while verifying the hash.".to_string(),
+            )));
+        }
+        hash_results.insert(hash_result);
+    }
+
+    let h_it = hash_results.iter();
+    for (i, hash_result) in h_it.enumerate() {
+        if *hash_result != i {
+            return Err(Error::new(Kind::HashError(
+                "Unexpected gap found in index list.".to_string(),
+            )));
+        }
+    }
+    Ok(())
 }

@@ -1,4 +1,3 @@
-use std::error;
 use std::fmt;
 
 /// An error that can occur in this library.
@@ -24,20 +23,18 @@ impl Error {
 pub enum Kind {
     /// An error returned while creating the hash.
     HashError(String),
-    WordListError(String),
-    TwoDArrayError(String),
-    OneDPackedArrayError(String),
-}
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match self.kind {
-            Kind::HashError(_) => "Hash error",
-            Kind::WordListError(_) => "Word list error",
-            Kind::TwoDArrayError(_) => "2D Array error",
-            Kind::OneDPackedArrayError(_) => "1D Packed Array error",
-        }
-    }
+    /// An error returned while creating the word list.
+    WordListError(String),
+
+    /// An error returned while creating the 2D array.
+    TwoDArrayError(String),
+
+    /// An error returned while creating the 1D packed array.
+    OneDPackedArrayError(String),
+
+    /// An error returned while creating the ELC algorithm.
+    ElcAlgorithmError(String),
 }
 
 impl fmt::Display for Error {
@@ -47,6 +44,7 @@ impl fmt::Display for Error {
             Kind::WordListError(s) => write!(f, "Word List Error: {s}"),
             Kind::TwoDArrayError(s) => write!(f, "2D Array Error: {s}"),
             Kind::OneDPackedArrayError(s) => write!(f, "1D Packed Array Error: {s}"),
+            Kind::ElcAlgorithmError(s) => write!(f, "ELC Algorithm Error: {s}"),
         }
     }
 }
@@ -62,23 +60,34 @@ mod tests {
             Kind::HashError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
+        println!("{e}, {e:?}");
 
         let e: Error = Error::new(Kind::WordListError(String::from("idk")));
         match e.kind() {
             Kind::WordListError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
+        println!("{e}");
 
         let e: Error = Error::new(Kind::TwoDArrayError(String::from("idk")));
         match e.kind() {
             Kind::TwoDArrayError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
+        println!("{e}");
 
         let e: Error = Error::new(Kind::OneDPackedArrayError(String::from("idk")));
         match e.kind() {
             Kind::OneDPackedArrayError(s) => assert!(s == "idk"),
             _ => panic!("Unexpected Kind: {e}"),
         }
+        println!("{e}");
+
+        let e: Error = Error::new(Kind::ElcAlgorithmError(String::from("idk")));
+        match e.kind() {
+            Kind::ElcAlgorithmError(s) => assert!(s == "idk"),
+            _ => panic!("Unexpected Kind: {e}"),
+        }
+        println!("{e}");
     }
 }

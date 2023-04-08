@@ -1,12 +1,16 @@
 use crate::{Error, Kind};
 use std::collections::BTreeSet;
 
+/// A list of words.
 #[derive(Debug)]
 pub struct WordList {
+    /// The list of words.
     pub list: Vec<String>,
 }
 
 impl WordList {
+    /// Creates a new empty word list.
+    #[must_use]
     pub fn new() -> Self {
         WordList { list: Vec::new() }
     }
@@ -50,14 +54,19 @@ impl WordList {
         Ok(())
     }
 
+    /// Returns the number of words in the list.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.list.len()
     }
 
+    /// Returns true if the list is empty.
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.list.is_empty()
     }
 
+    /// Adds a word to the list.
     pub fn push(&mut self, word: &str) {
         self.list.push(word.to_string());
     }
@@ -69,13 +78,23 @@ impl Default for WordList {
     }
 }
 
+impl FromIterator<String> for WordList {
+    fn from_iter<I: IntoIterator<Item = String>>(iter: I) -> Self {
+        let mut wl = WordList::new();
+        for word in iter {
+            wl.push(&word);
+        }
+        wl
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn word_list_unit_test() {
-        let mut wl = WordList::new();
+        let mut wl: WordList = WordList::default();
         assert!(wl.is_empty());
         if let Ok(()) = wl.is_valid() {
             panic!("Empty not detected.")
@@ -94,6 +113,7 @@ mod tests {
         if let Ok(()) = wl.is_valid() {
             panic!("Duplicate not detected.");
         }
+        println!("{wl:?}");
 
         let mut wl2 = WordList::new();
         assert!(wl2.is_empty());
@@ -104,5 +124,11 @@ mod tests {
         if let Ok(()) = wl2.is_valid() {
             panic!("lower case not detected");
         }
+
+        let wl3: WordList = ["HELLO", "WORLD", "TEST"]
+            .iter()
+            .map(std::string::ToString::to_string)
+            .collect();
+        assert!(wl3.len() == 3);
     }
 }
