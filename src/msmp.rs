@@ -18,11 +18,13 @@ pub use error::{Error, Kind};
 pub use word_list::WordList;
 
 use one_d_packed_array::OneDPackedArray;
+use rlt::Rlt;
 use two_d_array::{Row, RowSizeIterator, TwoDArray};
 
 mod elc_algorithm;
 mod error;
 mod one_d_packed_array;
+mod rlt;
 mod two_d_array;
 mod word_list;
 
@@ -35,6 +37,12 @@ pub trait HashAlgorithm {
     /// # Errors
     /// Will return `Err` if `word` is not a valid word.
     fn h2(&self, word: &str) -> Result<usize, Error>;
+
+    /// A representation of the hash function h1 as a string of pseudo code.
+    fn h1_as_text(&self) -> String;
+
+    /// A representation of the hash function h2 as a string of pseudo code.
+    fn h2_as_text(&self) -> String;
 }
 
 ///  A closure that takes a word and returns a hash value.
@@ -83,16 +91,12 @@ pub fn generate_hash(
 
             //println!("{one_d_packed_array:?}");
 
-            if verify(word_list, &one_d_packed_array, &hash_algorithm).is_err() {
-                return Err(Error::new(Kind::HashError(
-                    "Could not verify packed array.".to_string(),
-                )));
-            }
+            verify(word_list, one_d_packed_array.get_rlt(), &hash_algorithm)?;
 
             Ok(HashData {
-                as_string: text(&one_d_packed_array, &hash_algorithm),
+                as_string: text(one_d_packed_array.get_rlt(), &hash_algorithm),
                 as_closure: HashClosure::new(move |a| {
-                    hash(a, &one_d_packed_array, &hash_algorithm)
+                    hash(a, one_d_packed_array.get_rlt(), &hash_algorithm)
                 }),
             })
         }
@@ -100,35 +104,38 @@ pub fn generate_hash(
     }
 }
 
-fn hash(word: &str, packed_array: &OneDPackedArray, hash_algorithm: &dyn HashAlgorithm) -> usize {
+fn hash(word: &str, rlt: &Rlt, hash_algorithm: &dyn HashAlgorithm) -> usize {
     let row_index = hash_algorithm.h1(word).unwrap_or(0);
     let col_index = hash_algorithm.h2(word).unwrap_or(0);
-    let rlt_val = packed_array.get_rlt(row_index).unwrap_or(&0);
+    let rlt_val = rlt.get(row_index).unwrap_or(&0);
     let tmp = usize::try_from(rlt_val + isize::try_from(col_index).unwrap_or(0)).unwrap_or(0);
-    tmp % packed_array.len()
+    tmp % rlt.get_num_entries()
 }
 
-fn text(packed_array: &OneDPackedArray, hash_algorithm: &dyn HashAlgorithm) -> String {
+fn text(rlt: &Rlt, hash_algorithm: &dyn HashAlgorithm) -> String {
     let rv = format!(
         "row_lookup_table = [{rlt}]\n\
-         row_index = h1(word)\n\
-         col_index = h2(word)\n\
+         row_index = {h1}\n\
+         col_index = {h2}\n\
          hash_value = (row_lookup_table[row_index] + col_index) % {len}\n",
-        rlt = packed_array.get_rlt_text(),
-        len = packed_array.len()
+        rlt = rlt.get_as_text(),
+        h1 = hash_algorithm.h1_as_text(),
+        h2 = hash_algorithm.h2_as_text(),
+        len = rlt.get_num_entries()
     );
     rv
 }
 
 fn verify(
     word_list: &WordList,
-    packed_array: &OneDPackedArray,
+    rlt: &Rlt,
     hash_algorithm: &dyn HashAlgorithm,
 ) -> Result<(), Error> {
     let w_it = word_list.list.iter();
     let mut hash_results = BTreeSet::new();
     for word in w_it {
-        let hash_result = hash(word, packed_array, hash_algorithm);
+        let hash_result = hash(word, rlt, hash_algorithm);
+        println!("{word} -> {hash_result}");
         if hash_results.contains(&hash_result) {
             return Err(Error::new(Kind::HashError(
                 "Collision detected while verifying the hash.".to_string(),

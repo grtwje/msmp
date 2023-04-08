@@ -9,6 +9,7 @@ pub struct TwoDArray {
     rows_by_size: Vec<usize>,
     num_entries: usize,
     num_rows: usize,
+    last_row_index: usize,
 }
 
 #[derive(Debug)]
@@ -25,6 +26,7 @@ impl<'a> TwoDArray {
             rows_by_size: Vec::new(),
             num_entries: num_words,
             num_rows: 0,
+            last_row_index: 0,
         };
 
         {
@@ -69,11 +71,17 @@ impl<'a> TwoDArray {
 
         self_.num_rows = self_.rows.len();
 
+        self_.last_row_index = *self_.rows.last_key_value().unwrap().0;
+
         Ok(self_)
     }
 
     pub fn get_num_entries(&self) -> usize {
         self.num_entries
+    }
+
+    pub fn get_last_row_index(&self) -> usize {
+        self.last_row_index
     }
 
     #[cfg(test)]

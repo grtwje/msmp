@@ -2,20 +2,21 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::convert::TryFrom;
 use std::iter::zip;
 
-use crate::{Error, Kind, Row, RowSizeIterator, TwoDArray};
+use crate::{Error, Kind, Rlt, Row, RowSizeIterator, TwoDArray};
 
 #[derive(Debug)]
 pub struct OneDPackedArray {
     array: Vec<usize>,
-    rlt: BTreeMap<usize, isize>,
+    rlt: Rlt,
 }
 
 impl OneDPackedArray {
     pub fn new(two_d_array: &TwoDArray) -> Result<Self, Error> {
         let mut self_ = OneDPackedArray {
             array: vec![0; two_d_array.get_num_entries()],
-            rlt: BTreeMap::new(),
+            rlt: Rlt::new(two_d_array.get_last_row_index() + 1),
         };
+        let mut rlt_wrk: BTreeMap<usize, isize> = BTreeMap::new();
 
         let mut unused_array_indices: BTreeSet<usize> =
             (0..two_d_array.get_num_entries()).collect();
@@ -48,7 +49,7 @@ impl OneDPackedArray {
                                     )));
                                 }
                             }
-                            self_.rlt.insert(row_index, rlt_value);
+                            rlt_wrk.insert(row_index, rlt_value);
                         } else {
                             return Err(Error::new(Kind::OneDPackedArrayError(
                                 "Unexpected index overflow".to_string(),
@@ -67,41 +68,17 @@ impl OneDPackedArray {
             }
         }
 
+        let it = rlt_wrk.iter();
+        for (row_index, rlt_value) in it {
+            self_.rlt.insert(*row_index, *rlt_value);
+        }
+        self_.rlt.set_num_entries(self_.array.len());
+
         Ok(self_)
     }
 
-    pub fn get_rlt(&self, row_index: usize) -> Option<&isize> {
-        self.rlt.get(&row_index)
-    }
-
-    pub fn len(&self) -> usize {
-        self.array.len()
-    }
-
-    pub fn get_rlt_text(&self) -> String {
-        let mut rv = String::new();
-        let it = self.rlt.iter();
-        let mut previous_row_index = -1;
-        for (row_index, rlt_value) in it {
-            if previous_row_index != -1 {
-                rv.push_str(", ");
-            }
-            let row_index_ = isize::try_from(*row_index);
-            if let Ok(row_index) = row_index_ {
-                while previous_row_index + 1 < row_index {
-                    rv.push_str("0, ");
-                    previous_row_index += 1;
-                }
-            } else {
-                panic!("Unexpected row index overflow: {row_index}");
-            }
-
-            rv.push_str(&format!("{rlt_value}"));
-            if let Ok(row_index) = row_index_ {
-                previous_row_index = row_index;
-            }
-        }
-        rv
+    pub fn get_rlt(&self) -> &Rlt {
+        &self.rlt
     }
 
     #[cfg(test)]
@@ -185,9 +162,9 @@ mod tests {
             if let Ok(odpa) = OneDPackedArray::new(&tda) {
                 println!("{odpa:?}");
                 assert_eq!(odpa.array, vec![1, 4, 2, 3, 5]);
-                assert_eq!(odpa.rlt, [(0, 0), (1, 4)].iter().copied().collect());
-                assert_eq!(odpa.get_rlt(0), Some(&0));
-                assert_eq!(odpa.len(), 5);
+                assert_eq!(odpa.rlt.get(0), Some(&0));
+                assert_eq!(odpa.rlt.get(1), Some(&4));
+                assert_eq!(odpa.array.len(), 5);
                 assert!(!odpa.is_empty());
             } else {
                 panic!("Unable to create OneDPackedArray");

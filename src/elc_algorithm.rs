@@ -50,6 +50,16 @@ impl HashAlgorithm for ElcAlgorithm {
         }
     }
 
+    fn h1_as_text(&self) -> String {
+        format!(
+            "\n        val = 0
+        for x in word_letters[0..{elc}]:
+            val += (val * {num_vals}) + ord(x) - ord('A')",
+            elc = self.elc - 1,
+            num_vals = self.num_vals
+        )
+    }
+
     fn h2(&self, word: &str) -> Result<usize, Error> {
         if word.len() < self.elc {
             return Err(Error::new(Kind::ElcAlgorithmError(format!(
@@ -59,12 +69,7 @@ impl HashAlgorithm for ElcAlgorithm {
             ))));
         }
 
-        if word
-            .chars()
-            .rev()
-            .take(self.elc)
-            .all(|c| c.is_ascii_uppercase())
-        {
+        if word.chars().take(self.elc).all(|c| c.is_ascii_uppercase()) {
             let x: usize = word
                 .chars()
                 .rev()
@@ -79,6 +84,16 @@ impl HashAlgorithm for ElcAlgorithm {
                 elc = self.elc
             ))))
         }
+    }
+
+    fn h2_as_text(&self) -> String {
+        format!(
+            "\n        val = 0
+        for x in word_letters[-1..-{elc}]:
+            val += (val * {num_vals}) + ord(x) - ord('A')",
+            elc = self.elc,
+            num_vals = self.num_vals
+        )
     }
 }
 
@@ -184,6 +199,9 @@ mod tests {
             }
             _ => panic!("Unexpected error type."),
         };
+
+        assert_ne!(hash_algorithm.h1_as_text().len(), 0);
+        assert_ne!(hash_algorithm.h2_as_text().len(), 0);
 
         println!("{hash_algorithm:?}");
     }
