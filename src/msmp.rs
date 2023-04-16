@@ -2,7 +2,7 @@
 //! ====
 //! A library for generating a hash function from a word list.
 
-#![warn(unused_crate_dependencies)]
+//#![warn(unused_crate_dependencies)]
 #![deny(unused_extern_crates)]
 #![warn(missing_docs)]
 #![warn(missing_debug_implementations)]
@@ -210,7 +210,7 @@ fn verify(
     let mut hash_results = BTreeSet::new();
     for word in w_it {
         let hash_result = hash(word, rlt, hash_algorithm);
-        println!("{word} -> {hash_result}");
+        //println!("{word} -> {hash_result}");
         if hash_results.contains(&hash_result) {
             return Err(Error::new(Kind::HashError(
                 "Collision detected while verifying the hash.".to_string(),

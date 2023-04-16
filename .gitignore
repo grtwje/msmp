@@ -14,3 +14,6 @@ Cargo.lock
 
 # Visual Studio Code configuration
 .vscode/
+
+# test data
+tests/data/aspell_dump.txt

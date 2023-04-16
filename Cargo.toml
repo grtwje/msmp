@@ -11,4 +11,11 @@ license = "MIT"
 name = "msmp"
 path = "src/msmp.rs"
 
+[dev-dependencies]
+criterion = { version = "0.4", features = ["html_reports"]}
+
+[[bench]]
+name = "my_benchmark"
+harness = false
+
 [dependencies]
