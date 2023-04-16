@@ -1,5 +1,11 @@
 #[derive(Debug)]
+
+/// The row lookup table (RLT) is used to find the starting index of a row
+/// from the two dimensional array that was packed into a one dimensional array.
 pub struct Rlt {
+    /// The row lookup table.
+    /// The index of the table is the row number.
+    /// The value of the table is the starting index of the row in the one dimensional array.
     table: Vec<isize>,
 
     /// This is not the number of entries in the table,
@@ -8,6 +14,10 @@ pub struct Rlt {
 }
 
 impl Rlt {
+    /// Creates a new row lookup table.
+    ///
+    /// # Parameters
+    /// * `size` - The number of entries in the table.
     pub fn new(size: usize) -> Self {
         Self {
             table: vec![0; size],
@@ -15,22 +25,47 @@ impl Rlt {
         }
     }
 
+    /// Gets the value at the specified index.
+    ///
+    /// # Parameters
+    /// * `index` - The index of the value to get.
+    ///
+    /// # Returns
+    /// The value at the specified index.
+    /// If the index is out of range, None is returned.
     pub fn get(&self, index: usize) -> Option<&isize> {
         self.table.get(index)
     }
 
+    /// Sets the value at the specified index.
+    ///
+    /// # Parameters
+    /// * `index` - The index of the value to set.
+    /// * `value` - The value to set.
     pub fn insert(&mut self, index: usize, value: isize) {
         self.table[index] = value;
     }
 
+    /// Gets the number of words in the word list used to create the table.
+    ///
+    /// # Returns
+    /// The number of words in the word list used to create the table.
     pub fn get_num_entries(&self) -> usize {
         self.num_words
     }
 
+    /// Sets the number of words in the word list used to create the table.
+    ///
+    /// # Parameters
+    /// * `num_words` - The number of words in the word list used to create the table.
     pub fn set_num_entries(&mut self, num_words: usize) {
         self.num_words = num_words;
     }
 
+    /// Gets the table as a string.
+    ///
+    /// # Returns
+    /// The row lookup table as a string.
     pub fn get_as_text(&self) -> String {
         self.table
             .iter()

@@ -3,15 +3,24 @@ use std::fmt;
 /// An error that can occur in this library.
 #[derive(Debug)]
 pub struct Error {
+    /// The kind of error that occurred.
     kind: Kind,
 }
 
 impl Error {
+    /// Creates a new error.
+    ///
+    /// # Parameters
+    /// * `kind` - The kind of error that occurred.
+    ///
+    /// # Returns
+    /// A new error.
     pub(crate) fn new(kind: Kind) -> Error {
         Error { kind }
     }
 
     /// Convenience function for getting the kind of error.
+    /// This is useful for pattern matching.
     #[must_use]
     pub fn kind(&self) -> &Kind {
         &self.kind
