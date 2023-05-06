@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 
 use msmp::{generate_hash, ElcAlgorithm, WordList};
 use rand::prelude::*;
@@ -47,8 +47,8 @@ fn load_random_word_list(
     Some(random_word_list)
 }
 
-fn elc2_benchmark(word_list: &WordList) {
-    let hash_algorithm: ElcAlgorithm = ElcAlgorithm::default();
+fn elc_benchmark(word_list: &WordList, elc: usize) {
+    let hash_algorithm: ElcAlgorithm = ElcAlgorithm::new(elc, 26);
 
     if generate_hash(word_list, hash_algorithm).is_err() {
         panic!("generate_hash failed");
@@ -65,7 +65,13 @@ fn criterion_benchmark(c: &mut Criterion) {
 
     println!("word_list = {:?}", word_list);
 
-    c.bench_function("my_benchmark", |b| b.iter(|| elc2_benchmark(&word_list)));
+    let mut group = c.benchmark_group("elc_benchmarks");
+    for elc in 1..=4 {
+        group.bench_with_input(BenchmarkId::new("elc", elc), &elc, |b, elc| {
+            b.iter(|| elc_benchmark(&word_list, *elc))
+        });
+    }
+    group.finish();
 }
 
 criterion_group!(benches, criterion_benchmark);
